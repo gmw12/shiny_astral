@@ -4,17 +4,14 @@ server <- function(input, output, session) {
   
   data_dir <<- "/mnt/RawData/4363/OA10034_Astral/tsv_export"
   excel_file_name <<- "df_hela_OA10034.xlsx"
-  astral_id <<- 1
   
   observe({
     if (input$astral_id == 1) {
       data_dir <<- "/mnt/RawData/4363/OA10034_Astral/tsv_export"
       excel_file_name <<- "df_hela_OA10034.xlsx"
-      astral_id <<- 1
     } else if (input$astral_id == 2){
       data_dir <<- "/mnt/RawData/4363/OA10222_Astral/tsv_export"
       excel_file_name <<- "df_hela_OA10222.xlsx"
-      astral_id <<- 2
     }
   })
   

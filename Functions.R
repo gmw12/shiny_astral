@@ -137,7 +137,7 @@ format_save_data <- function(){
   df_hela <<- df_hela |> distinct()
    
   #save to excel
-  write_xlsx(df_hela, str_c(data_dir, "/df_hela_", astral_id, ".xlsx"))
+  write_xlsx(df_hela, str_c(data_dir, "/", excel_file_name))
   
   return()
 }
