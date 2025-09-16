@@ -51,6 +51,7 @@ server <- function(input, output, session) {
 
         extract_data(hela_tsv_sbf$datapath)
         format_save_data()
+        updateSelectInput(session, "comment_date", choices = comment_dates, selected = comment_dates[1])
 
         df_rv(df_hela)
       }  
