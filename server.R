@@ -59,53 +59,85 @@ server <- function(input, output, session) {
   })
   
 
+  #output$mytable <- renderDT({
+  #  df_rv()
+  #}, options = list(order = list(list(1, 'desc'))))
+  
+  
   output$mytable <- renderDT({
     df_rv()
-  }, options = list(order = list(list(1, 'desc'))))
+  }, options = list(
+    order = list(list(1, 'desc')),
+    scrollX = TRUE,
+    scrollY = "500px",
+    scrollCollapse = TRUE,
+    fixedColumns = list(leftColumns = 2)  # Freeze first column
+  ), extensions = 'FixedColumns')  # Enable the extension
+  
   
   
   observe({
+    
+    plot_list <- c("q1Plot", "q2Plot", "q3Plot", "q4Plot", 
+                   "proteinPlot", "peptidePlot", "precursorPlot", 
+                   "ideal_peakwidthPlot", "wide_peakwidthPlot", "narrow_peakwidthPlot")
+    
+    brush_list <- c("q1_brush", "q2_brush", "q3_brush", "q4_brush", 
+                    "protein_brush", "peptide_brush", "precursor_brush", 
+                    "ideal_peakwidth_brush", "wide_peakwidth_brush", "narrow_peakwidth_brush")
+    
+    brush_title_list <- c("q1_brush_table", "q2_brush_table", "q3_brush_table", "q4_brush_table", 
+                          "protein_brush_table", "peptide_brush_table", "precursor_brush_table", 
+                          "ideal_peakwidth_brush_table", "wide_peakwidth_brush_table", "narrow_peakwidth_brush_table")
+    
+    column_list <- c("Sum_First_Quartile", "Sum_Second_Quartile", "Sum_Third_Quartile", "Sum_Last_Quartile", 
+                     "Proteins", "Peptides", "Precursors", 
+                     "Ratio_ideal", "Ratio_wide", "Ratio_narrow")
+    
+    title_list <- c("Sum of First Quartile", "Sum of Second Quartile", "Sum of Third Quartile", "Sum of Last Quartile", 
+                    "Proteins", "Peptides", "Precursors", 
+                    "Ratio_ideal", "Ratio_wide", "Ratio_narrow")
+    
+    x_list <- c("Date", "Date", "Date", "Date", 
+                "Date", "Date", "Date", 
+                "Date", "Date", "Date")
+    
+    y_list <- c("Q1", "Q2", "Q3", "Q4", 
+                "Proteins", "Peptides", "Precursors", 
+                "Ratio_ideal", "Ratio_wide", "Ratio_narrow")
+    
+    
     if (input$plot_type == 1) {
       
-      output$q4Plot <- renderPlot({create_line_plot(df_rv(), "Sum_Last_Quartile", "Sum of Last Quartile", "Date", "Q4")})
-      output$q4_brush_table <- renderTable({create_brush(df_rv(), "Date", "Sum_Last_Quartile", input$q4_brush)})
+      options_list <- list(
+        order = list(list(1, 'desc')),
+        scrollX = TRUE,
+        scrollY = "500px",
+        scrollCollapse = TRUE,
+        fixedColumns = list(leftColumns = 2)  # Freeze first column
+      )
+
+      for (i in 1:length(plot_list)) {
+        local({
+          my_i <- i
+          output[[plot_list[my_i]]] <- renderPlot({create_line_plot(df_rv(), column_list[my_i], title_list[my_i] , x_list[my_i], y_list[my_i])})
+          
+          output[[brush_title_list[my_i]]] <- renderDT({
+            create_brush(df_rv(), x_list[my_i], column_list[my_i], input[[brush_list[my_i]]])
+          }, options = options_list, extensions = 'FixedColumns')
+        })
+      }
       
-      output$proteinPlot <- renderPlot({create_line_plot(df_rv(), "Proteins", "Proteins", "Date", "Proteins")})
-      output$protein_brush_table <- renderTable({create_brush(df_rv(), "Date", "Proteins", input$protein_brush)})  
-      
-      output$peptidePlot <- renderPlot({create_line_plot(df_rv(), "Peptides", "Peptides", "Date", "Peptides")})
-      output$peptide_brush_table <- renderTable({create_brush(df_rv(), "Date", "Peptides", input$peptide_brush)})  
-      
-      output$precursorPlot <- renderPlot({create_line_plot(df_rv(), "Precursors", "Precursors", "Date", "Precursors")})
-      output$precursor_brush_table <- renderTable({create_brush(df_rv(), "Date", "Precursors", input$precursor_brush)})  
-      
-      output$ideal_peakwidthPlot <- renderPlot({create_line_plot(df_rv(), "Ratio_ideal", "Ratio_ideal", "Date", "Ratio_ideal")})
-      output$ideal_peakwidth_brush_table <- renderTable({create_brush(df_rv(), "Date", "Ratio_ideal", input$ideal_peakwidth_brush)})  
-      
-      output$wide_peakwidthPlot <- renderPlot({create_line_plot(df_rv(), "Ratio_wide", "Ratio_wide", "Date", "Ratio_wide")})
-      output$wide_peakwidth_brush_table <- renderTable({create_brush(df_rv(), "Date", "Ratio_wide", input$wide_peakwidth_brush)})  
-      
-      output$narrow_peakwidthPlot <- renderPlot({create_line_plot(df_rv(), "Ratio_narrow", "Ratio_narrow", "Date", "Ratio_narrow")})
-      output$narrow_peakwidth_brush_table <- renderTable({create_brush(df_rv(), "Date", "Ratio_narrow", input$narrow_peakwidth_brush)})  
       
     } else if (input$plot_type == 2) {
       
-      output$q4Plot <- renderPlot({create_bar_plot(df_rv(), "Sum_Last_Quartile", "Q4", "Date", "Total")})
-      
-      output$proteinPlot <- renderPlot({create_bar_plot(df_rv(), "Proteins", "Proteins", "Date", "Total")})
-      
-      output$peptidePlot <- renderPlot({create_bar_plot(df_rv(), "Peptides", "Peptides", "Date", "Total")})
-      
-      output$precursorPlot <- renderPlot({create_bar_plot(df_rv(), "Precursors", "Precursors", "Date", "Total")})
-      
-      output$ideal_peakwidthPlot <- renderPlot({create_bar_plot(df_rv(), "Ratio_ideal", "Peak Width", "Date", "Ratio")})
-      
-      output$wide_peakwidthPlot <- renderPlot({create_bar_plot(df_rv(), "Ratio_wide", "Peak Width", "Date", "Ratio")})
-      
-      output$narrow_peakwidthPlot <- renderPlot({create_bar_plot(df_rv(), "Ratio_narrow", "Peak Width", "Date", "Ratio")})
-      
+      for (i in 1:length(plot_list)) {
+        local({
+          my_i <- i
+          output[[plot_list[my_i]]] <- renderPlot({create_bar_plot(df_rv(), column_list[my_i], title_list[my_i] , x_list[my_i], "Total")})
+        })
+      }
     }
-    
     
   })
   
