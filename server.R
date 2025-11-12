@@ -1,6 +1,13 @@
-
-
 server <- function(input, output, session) {
+  
+  # Define common DT options
+  DT_OPTIONS <- list(
+    order = list(list(1, 'desc')),
+    scrollX = TRUE,
+    scrollY = "500px",
+    scrollCollapse = TRUE,
+    fixedColumns = list(leftColumns = 2)
+  )
   
   data_dir <<- "/mnt/RawData/4363/OA10034_Astral/SPD30_tsv"
   excel_file_name <<- "df_hela_OA10034.xlsx"
@@ -18,8 +25,8 @@ server <- function(input, output, session) {
   
   volumes <- c(dc = data_dir, dd = '/mnt/h_black2', h1 = '/mnt/h_black1', h2 = '/mnt/h_black2', wd = '.', Home = fs::path_home(), getVolumes()())
   shinyFileChoose(input, 'sfb_hela_tsv_file', session = session, roots = volumes, filetypes = c('', 'tsv'))
-    
-    
+  
+  
   #load hela data from excel
   if (file.exists(str_c(data_dir, "/", excel_file_name))) {
     df_hela <<- readxl::read_excel(str_c(data_dir, "/", excel_file_name))
@@ -27,119 +34,80 @@ server <- function(input, output, session) {
   } else {
     shinyalert("Error! Need to create starting dataframe manually!", type = "error")
   }
-    
+  
   comment_dates <- sort(df_hela$Date, decreasing = TRUE)
   updateSelectInput(session, "comment_date", choices = comment_dates, selected = comment_dates[1])
-    
   
-
-
+  
+  
+  
   #reactive value to store dataframe    
   df_rv <- reactiveVal(df_hela)
   
   
-  #observeEvent(input$add_row, {
-  
   observeEvent(input$sfb_hela_tsv_file, { 
-    #requires file to work
-    #req(input$file)
     cat(file = stderr(), "sfb_hela_tsv button clicked...", "\n")
     
-      if (is.list(input$sfb_hela_tsv_file)) {
-        hela_tsv_sbf <- parseFilePaths(volumes, input$sfb_hela_tsv_file)
-        output$hela_tsv_file_name <- renderText({basename(hela_tsv_sbf$datapath)})
-
-        extract_data(hela_tsv_sbf$datapath)
-        format_save_data()
-        updateSelectInput(session, "comment_date", choices = comment_dates, selected = comment_dates[1])
-
-        df_rv(df_hela)
-      }  
-  
+    if (is.list(input$sfb_hela_tsv_file)) {
+      hela_tsv_sbf <- parseFilePaths(volumes, input$sfb_hela_tsv_file)
+      output$hela_tsv_file_name <- renderText({basename(hela_tsv_sbf$datapath)})
+      
+      extract_data(hela_tsv_sbf$datapath)
+      format_save_data()
+      updateSelectInput(session, "comment_date", choices = comment_dates, selected = comment_dates[1])
+      
+      df_rv(df_hela)
+    }  
+    
   })
-  
-
-  #output$mytable <- renderDT({
-  #  df_rv()
-  #}, options = list(order = list(list(1, 'desc'))))
   
   
   output$mytable <- renderDT({
     df_rv()
-  }, options = list(
-    order = list(list(1, 'desc')),
-    scrollX = TRUE,
-    scrollY = "500px",
-    scrollCollapse = TRUE,
-    fixedColumns = list(leftColumns = 2)  # Freeze first column
-  ), extensions = 'FixedColumns')  # Enable the extension
+  }, options = DT_OPTIONS, extensions = 'FixedColumns')
   
   
+  # Configuration for standard plots
+  STANDARD_PLOTS <- list(
+    list(output = "q1Plot", brush = "q1_brush", brush_table = "q1_brush_table", 
+         column = "Sum_First_Quartile"),
+    list(output = "q2Plot", brush = "q2_brush", brush_table = "q2_brush_table", 
+         column = "Sum_Second_Quartile"),
+    list(output = "q3Plot", brush = "q3_brush", brush_table = "q3_brush_table", 
+         column = "Sum_Third_Quartile"),
+    list(output = "q4Plot", brush = "q4_brush", brush_table = "q4_brush_table", 
+         column = "Sum_Last_Quartile"),
+    list(output = "proteinPlot", brush = "protein_brush", brush_table = "protein_brush_table", 
+         column = "Proteins"),
+    list(output = "peptidePlot", brush = "peptide_brush", brush_table = "peptide_brush_table", 
+         column = "Peptides"),
+    list(output = "precursorPlot", brush = "precursor_brush", brush_table = "precursor_brush_table", 
+         column = "Precursors"),
+    list(output = "ideal_peakwidthPlot", brush = "ideal_peakwidth_brush", brush_table = "ideal_peakwidth_brush_table", 
+         column = "Ratio_ideal"),
+    list(output = "wide_peakwidthPlot", brush = "wide_peakwidth_brush", brush_table = "wide_peakwidth_brush_table", 
+         column = "Ratio_wide"),
+    list(output = "narrow_peakwidthPlot", brush = "narrow_peakwidth_brush", brush_table = "narrow_peakwidth_brush_table", 
+         column = "Ratio_narrow")
+  )
   
+  # Render standard plots dynamically
   observe({
-    
-    plot_list <- c("q1Plot", "q2Plot", "q3Plot", "q4Plot", 
-                   "proteinPlot", "peptidePlot", "precursorPlot", 
-                   "ideal_peakwidthPlot", "wide_peakwidthPlot", "narrow_peakwidthPlot")
-    
-    brush_list <- c("q1_brush", "q2_brush", "q3_brush", "q4_brush", 
-                    "protein_brush", "peptide_brush", "precursor_brush", 
-                    "ideal_peakwidth_brush", "wide_peakwidth_brush", "narrow_peakwidth_brush")
-    
-    brush_title_list <- c("q1_brush_table", "q2_brush_table", "q3_brush_table", "q4_brush_table", 
-                          "protein_brush_table", "peptide_brush_table", "precursor_brush_table", 
-                          "ideal_peakwidth_brush_table", "wide_peakwidth_brush_table", "narrow_peakwidth_brush_table")
-    
-    column_list <- c("Sum_First_Quartile", "Sum_Second_Quartile", "Sum_Third_Quartile", "Sum_Last_Quartile", 
-                     "Proteins", "Peptides", "Precursors", 
-                     "Ratio_ideal", "Ratio_wide", "Ratio_narrow")
-    
-    title_list <- c("Sum of First Quartile", "Sum of Second Quartile", "Sum of Third Quartile", "Sum of Last Quartile", 
-                    "Proteins", "Peptides", "Precursors", 
-                    "Ratio_ideal", "Ratio_wide", "Ratio_narrow")
-    
-    x_list <- c("Date", "Date", "Date", "Date", 
-                "Date", "Date", "Date", 
-                "Date", "Date", "Date")
-    
-    y_list <- c("Q1", "Q2", "Q3", "Q4", 
-                "Proteins", "Peptides", "Precursors", 
-                "Ratio_ideal", "Ratio_wide", "Ratio_narrow")
-    
-    
-    if (input$plot_type == 1) {
-      
-      options_list <- list(
-        order = list(list(1, 'desc')),
-        scrollX = TRUE,
-        scrollY = "500px",
-        scrollCollapse = TRUE,
-        fixedColumns = list(leftColumns = 2)  # Freeze first column
-      )
-
-      for (i in 1:length(plot_list)) {
-        local({
-          my_i <- i
-          output[[plot_list[my_i]]] <- renderPlot({create_line_plot(df_rv(), column_list[my_i], title_list[my_i] , x_list[my_i], y_list[my_i])})
-          
-          output[[brush_title_list[my_i]]] <- renderDT({
-            create_brush(df_rv(), x_list[my_i], column_list[my_i], input[[brush_list[my_i]]])
-          }, options = options_list, extensions = 'FixedColumns')
+    for (plot_config in STANDARD_PLOTS) {
+      local({
+        config <- plot_config
+        
+        output[[config$output]] <- renderPlot({
+          render_dynamic_plot(df_rv(), config$column, input$plot_type)
         })
-      }
-      
-      
-    } else if (input$plot_type == 2) {
-      
-      for (i in 1:length(plot_list)) {
-        local({
-          my_i <- i
-          output[[plot_list[my_i]]] <- renderPlot({create_bar_plot(df_rv(), column_list[my_i], title_list[my_i] , x_list[my_i], "Total")})
-        })
-      }
+        
+        output[[config$brush_table]] <- renderDT({
+          create_brush(df_rv(), "Date", config$column, input[[config$brush]])
+        }, options = DT_OPTIONS, extensions = 'FixedColumns')
+      })
     }
-    
   })
+  
   
   # Get numeric columns for dropdowns
   numeric_columns <- reactive({
@@ -180,51 +148,26 @@ server <- function(input, output, session) {
   # Custom Metrics tab plot
   output$custom_metric_plot <- renderPlot({
     req(input$custom_metric_select)
-    
-    if (input$plot_type == 1) {
-      create_line_plot(df_rv(), input$custom_metric_select, input$custom_metric_select, "Date", input$custom_metric_select)
-    } else {
-      create_bar_plot(df_rv(), input$custom_metric_select, input$custom_metric_select, "Date", input$custom_metric_select)
-    }
+    render_dynamic_plot(df_rv(), input$custom_metric_select, input$plot_type)
   })
   
   # Custom Metrics brush table
-  options_list <- list(
-    order = list(list(1, 'desc')),
-    scrollX = TRUE,
-    scrollY = "500px",
-    scrollCollapse = TRUE,
-    fixedColumns = list(leftColumns = 2)
-  )
-  
   output$custom_metric_brush_table <- renderDT({
     req(input$custom_metric_select)
     create_brush(df_rv(), "Date", input$custom_metric_select, input$custom_metric_brush)
-  }, options = options_list, extensions = 'FixedColumns')
+  }, options = DT_OPTIONS, extensions = 'FixedColumns')
   
   # Compare Metrics - Left plot
   output$compare_plot_left <- renderPlot({
     req(input$compare_metric_left)
-    
-    if (input$plot_type == 1) {
-      create_line_plot(df_rv(), input$compare_metric_left, input$compare_metric_left, "Date", input$compare_metric_left)
-    } else {
-      create_bar_plot(df_rv(), input$compare_metric_left, input$compare_metric_left, "Date", input$compare_metric_left)
-    }
+    render_dynamic_plot(df_rv(), input$compare_metric_left, input$plot_type)
   })
   
   # Compare Metrics - Right plot
   output$compare_plot_right <- renderPlot({
     req(input$compare_metric_right)
-    
-    if (input$plot_type == 1) {
-      create_line_plot(df_rv(), input$compare_metric_right, input$compare_metric_right, "Date", input$compare_metric_right)
-    } else {
-      create_bar_plot(df_rv(), input$compare_metric_right, input$compare_metric_right, "Date", input$compare_metric_right)
-    }
+    render_dynamic_plot(df_rv(), input$compare_metric_right, input$plot_type)
   })
-  
-  
   
   
   observeEvent(input$add_comment, {
@@ -237,11 +180,7 @@ server <- function(input, output, session) {
     df_hela <<- updated_table
     write_xlsx(updated_table, str_c(data_dir, "/", excel_file_name))
   })
-
+  
   
   
 }
-
-
-
-

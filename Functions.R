@@ -291,4 +291,59 @@ create_bar_plot <- function(df, data_column, title, x_lab, y_lab) {
 }
 
 
+# NEW HELPER FUNCTIONS FOR REFACTORING
 
+# Get nice plot titles from column names
+get_plot_title <- function(column_name) {
+  title_map <- c(
+    "Sum_First_Quartile" = "Sum of First Quartile",
+    "Sum_Second_Quartile" = "Sum of Second Quartile",
+    "Sum_Third_Quartile" = "Sum of Third Quartile",
+    "Sum_Last_Quartile" = "Sum of Last Quartile",
+    "Proteins" = "Total Proteins",
+    "Peptides" = "Total Peptides",
+    "Precursors" = "Total Precursors",
+    "Ratio_ideal" = "Ratio of Ideal Peak Width (8-30sec)",
+    "Ratio_wide" = "Ratio of Wide Peak Width (>30sec)",
+    "Ratio_narrow" = "Ratio of Narrow Peak Width (<8sec)",
+    "Median" = "Median Total Quantity",
+    "SN_Median" = "Median Signal to Noise",
+    "Quartile1" = "1st Quartile Value",
+    "Quartile2" = "2nd Quartile Value (Median)",
+    "Quartile3" = "3rd Quartile Value",
+    "O00410_Count" = "O00410 Protein Count",
+    "O00571_Count" = "O00571 Protein Count",
+    "A3KMH1_Count" = "A3KMH1 Protein Count",
+    "A5YKK6_Count" = "A5YKK6 Protein Count",
+    "A6NHR9_Count" = "A6NHR9 Protein Count",
+    "O00410_Quantity" = "O00410 Total Quantity",
+    "O00571_Quantity" = "O00571 Total Quantity",
+    "A3KMH1_Quantity" = "A3KMH1 Total Quantity",
+    "A5YKK6_Quantity" = "A5YKK6 Total Quantity",
+    "A6NHR9_Quantity" = "A6NHR9 Total Quantity",
+    "Ratio_O00410_A3KMH1" = "Ratio: O00410 / A3KMH1",
+    "Ratio_O00571_A6NHR9" = "Ratio: O00571 / A6NHR9",
+    "Ratio_A5YKK6_A6NHR9" = "Ratio: A5YKK6 / A6NHR9",
+    "SN_Quartile1" = "S/N 1st Quartile",
+    "SN_Quartile2" = "S/N 2nd Quartile (Median)",
+    "SN_Quartile3" = "S/N 3rd Quartile"
+  )
+  
+  # Return mapped title if exists, otherwise return column name with underscores replaced
+  if (column_name %in% names(title_map)) {
+    return(title_map[[column_name]])
+  } else {
+    return(gsub("_", " ", column_name))
+  }
+}
+
+
+# Render plot based on type (line or bar)
+render_dynamic_plot <- function(df, column, plot_type) {
+  title <- get_plot_title(column)
+  if (plot_type == 1) {
+    create_line_plot(df, column, title, "Date", column)
+  } else {
+    create_bar_plot(df, column, title, "Date", column)
+  }
+}
