@@ -181,11 +181,11 @@ extract_test <- function(df_hela, file){
                          "Comments")
   
   #converting all columns to numeric
-  df_hela <- df_hela[order(as.Date(df_hela$Date, format = "%y%m%d")), ]
+  df_hela <- df_hela[order(as.Date(df_hela$Date, format = "%y%m%d"), decreasing = TRUE), ]
   
-  #convert all columns to numeric except Date and Comments
-  df_hela$Sum_First_Quartile <- as.numeric(df_hela$Sum_First_Quartile)
-  df_hela[, 2:(ncol(df_hela)-1)] <- lapply(df_hela[, 2:(ncol(df_hela)-1)], as.numeric)
+  #set all columns in df_hela to numeric except Date and Comments
+  df_hela <- df_hela %>%
+    mutate(across(-c(Date, Comments), as.numeric))
   
   df_hela <- df_hela |> distinct()
   

@@ -179,60 +179,7 @@ body <- dashboardBody(
                                       DTOutput("narrow_peakwidth_brush_table", height = "600px"))
                                   ))
                               
-                            )),
-                         
-                         
-                         
-                         tabPanel("Custom Metrics",
-                                  fluidRow(
-                                    column(width = 12,
-                                           selectInput(inputId = "custom_metric_select", 
-                                                       label = "Select Metric:", 
-                                                       choices = c(""),
-                                                       width = '50%')
-                                    )
-                                  ),
-                                  fluidRow(
-                                    box(title = "Custom Metric Plot", width = 12, status = "primary", solidHeader = TRUE,
-                                        plotOutput("custom_metric_plot", height = "600px", brush = 'custom_metric_brush'))
-                                  ),
-                                  fluidRow(
-                                    column(width = 12, tags$b(tags$i('Rows corresponding to datapoints selected')), 
-                                           DTOutput('custom_metric_brush_table', height = "600px"))
-                                  )
-                         ),
-                         
-                         tabPanel("Compare Metrics",
-                                  fluidRow(
-                                    column(width = 6,
-                                           selectInput(inputId = "compare_metric_left", 
-                                                       label = "Left Plot Metric:", 
-                                                       choices = c(""),
-                                                       width = '80%')
-                                    ),
-                                    column(width = 6,
-                                           selectInput(inputId = "compare_metric_right", 
-                                                       label = "Right Plot Metric:", 
-                                                       choices = c(""),
-                                                       width = '80%')
-                                    )
-                                  ),
-                                  fluidRow(
-                                    column(width = 6,
-                                           box(title = "Left Metric", width = 12, status = "primary", solidHeader = TRUE,
-                                               plotOutput("compare_plot_left", height = "600px"))
-                                    ),
-                                    column(width = 6,
-                                           box(title = "Right Metric", width = 12, status = "primary", solidHeader = TRUE,
-                                               plotOutput("compare_plot_right", height = "600px"))
-                                    )
-                                  )
-                         )
-                         
-                         
-                         
-                         
-                         
+                            ))
                          
                   )
                 )
